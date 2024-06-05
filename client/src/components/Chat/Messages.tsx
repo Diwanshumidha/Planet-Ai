@@ -3,6 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import useMessages from "@/hooks/useMessages";
 import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
+import Markdown from "react-markdown";
 
 const Messages = () => {
   const { messages, status } = useMessages();
@@ -75,14 +76,14 @@ const Message = ({ message }: MessageProps) => {
         ) : null}
       </div>
 
-      <p
+      <Markdown
         className={cn(
           " font-medium",
           message.by === "error" ? "text-red-500" : null
         )}
       >
         {message.text}
-      </p>
+      </Markdown>
     </div>
   );
 };
