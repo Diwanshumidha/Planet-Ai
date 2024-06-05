@@ -20,9 +20,8 @@ async def upload_file(file: UploadFile = File()):
         if not file.content_type in ALLOWED_TYPES:
             return {"error": "Only PDF, DOCX OR TXT files are supported"}
         
-        print(file.content_type)
         pdf_text = await get_text_from_file(file)
-        print(pdf_text)
+      
         text_chunks = get_text_chunks(pdf_text)
         # Remaining chunks
         chunks = text_chunks[:99]
@@ -30,17 +29,12 @@ async def upload_file(file: UploadFile = File()):
        
         saved_filename = save_to_vector(text_chunks=chunks,filename=file.filename)
 
+        logger.info("Successfully Uploaded")
 
         metadata = {
             "fileId":saved_filename,
             "filename": file.filename,
-            "chunks": len(chunks),
         }
-
-        if(len(remaining_chunks) >= 1):
-            metadata["remaining_chunks"] = len(remaining_chunks)
-        
-
     
         return {"success":True, "metadata":metadata}
     except Exception as e:

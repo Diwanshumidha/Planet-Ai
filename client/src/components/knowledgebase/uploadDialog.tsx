@@ -10,15 +10,30 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import UseFiles from "@/hooks/useFiles";
+import { FormEvent, useState } from "react";
 
 export default function UploadDialog({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { handleUploadFile, status } = UseFiles();
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget as HTMLFormElement);
+    const file = formData.get("file") as File;
+    if (file) {
+      await handleUploadFile(file);
+      setIsOpen(false);
+    }
+  };
+
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
     <>
-      <Dialog>
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogTrigger asChild>{children}</DialogTrigger>
         <DialogContent className="sm:max-w-[425px] max-sm:w-[95%]">
           <DialogHeader>
@@ -27,20 +42,23 @@ export default function UploadDialog({
               Please select the file you want to ask questions from.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className=" space-y-1">
-              <Label htmlFor="name" className="text-right">
+          <form onSubmit={handleSubmit} className="grid gap-4 py-4">
+            <div className="space-y-1">
+              <Label htmlFor="file" className="text-right">
                 File
               </Label>
-              <Input id="name" type="file" className="col-span-3" />
+              <Input id="file" name="file" type="file" className="col-span-3" />
+
               <p className="text-xs text-foreground/35">
-                supported files are PDF, Docx and Txt
+                Supported files are PDF, Docx, and Txt.
               </p>
             </div>
-          </div>
-          <DialogFooter>
-            <Button type="submit">Save changes</Button>
-          </DialogFooter>
+            <DialogFooter>
+              <Button disabled={status === "loading"} type="submit">
+                Save changes
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </>
