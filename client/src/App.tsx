@@ -15,7 +15,7 @@ const App = () => {
       <ScrollArea className=" flex-1 overflow-y-auto gutter  ">
         {!currentFile ? (
           <div className=" w-full h-full flex flex-col justify-center items-center">
-            <h1 className="text-3xl font-bold">Welcome to ChatGen!</h1>
+            <h1 className="text-3xl font-bold">Welcome to Planet Ai</h1>
             <p className="">Please select a file to start chatting.</p>
             <UploadDialog>
               <Button
