@@ -4,6 +4,7 @@ import Icons from "./Icons";
 import MaxWidthWrapper from "./MaxWidthWrapper";
 import UploadDialog from "../knowledgebase/uploadDialog";
 import UseFiles from "@/hooks/useFiles";
+import { FilesSheet } from "../knowledgebase/filesSheet";
 
 const Navbar = () => {
   const { currentFile } = UseFiles();
@@ -14,12 +15,20 @@ const Navbar = () => {
           <Icons.wideLogo />
         </div>
         <div className=" flex items-center  h-full gap-5">
-          <div className="text-primary max-sm:text-xs flex-col sm:flex-row  flex items-center sm:gap-2">
-            <div className=" p-2 border-solid   rounded-md border-primary/50 border-[1px]">
-              <File size={20} className=" size-3 sm:size-4" />
-            </div>
-            <p>{currentFile?.filename}</p>
-          </div>
+          {currentFile ? (
+            <FilesSheet>
+              <button
+                aria-label="Select the Current File"
+                className="text-primary max-sm:text-xs flex-col sm:flex-row  flex items-center sm:gap-2"
+              >
+                <div className=" p-2 border-solid   rounded-md border-primary/50 border-[1px]">
+                  <File size={20} className=" size-3 sm:size-4" />
+                </div>
+                <p>{currentFile?.filename}</p>
+              </button>
+            </FilesSheet>
+          ) : null}
+
           <UploadDialog>
             <Button
               variant={"outline"}

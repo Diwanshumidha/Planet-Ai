@@ -4,7 +4,7 @@ from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain.vectorstores import FAISS
 import os
 import asyncio
-
+import time
 
 from utils.pdf_utils import get_text_chunks,get_text_from_file
 from services.vectorStore import save_to_vector
@@ -55,8 +55,11 @@ class RequestBody(BaseModel):
 
 @generation_router.post("/answer")
 def get_body(request_body: RequestBody) -> dict:
+    print(request_body)
     filename = request_body.filename
     message = request_body.message
+
+    
 
     try:
        
@@ -85,7 +88,7 @@ def get_body(request_body: RequestBody) -> dict:
         raise HTTPException(status_code=500, detail="An error occurred while processing the request.")
 
 
-@generation_router.delete("/file/{filename}")
+@generation_router.delete("/file/delete/{filename}")
 async def delete_file(filename: str):
     """Deletes a file based on the provided filename."""
 

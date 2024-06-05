@@ -11,6 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import UseFiles from "@/hooks/useFiles";
+import { Loader2 } from "lucide-react";
 import { FormEvent, useState } from "react";
 
 export default function UploadDialog({
@@ -54,8 +55,18 @@ export default function UploadDialog({
               </p>
             </div>
             <DialogFooter>
-              <Button disabled={status === "loading"} type="submit">
-                Save changes
+              <Button
+                disabled={status === "loading"}
+                type="submit"
+                className="gap-3"
+              >
+                {status === "loading" ? (
+                  <>
+                    <Loader2 size={18} className="animate-spin" /> Uploading...
+                  </>
+                ) : (
+                  "Upload File"
+                )}
               </Button>
             </DialogFooter>
           </form>

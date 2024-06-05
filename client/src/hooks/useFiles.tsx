@@ -4,31 +4,59 @@ import {
   validFileTypeSchema,
 } from "@/lib/schemas/files.schema";
 import { useMutation } from "react-query";
+import { toast } from "sonner";
 
 import { create } from "zustand";
+import { devtools, persist } from "zustand/middleware";
 
 interface FileState {
   files: TResponseFile[];
   currentFile: TResponseFile | null;
   setCurrentFile: (file: TResponseFile) => void;
   addFileToStore: (file: TResponseFile) => void;
-  removeFileFromStore: (file: TResponseFile) => void;
+  removeFileFromStore: (fileId: string) => void;
 }
 
-const useFilesStore = create<FileState>()((set) => ({
-  files: [],
-  currentFile: null,
-  setCurrentFile: (file) => set((state) => ({ ...state, currentFile: file })),
-  addFileToStore: (file) => set((state) => ({ files: [...state.files, file] })),
-  removeFileFromStore: (file) =>
-    set((state) => ({
-      files: state.files.filter((f) => f.fileId !== file.fileId),
-    })),
-}));
+const useFilesStore = create<FileState>()(
+  devtools(
+    persist(
+      (set) => ({
+        files: [],
+        currentFile: null,
+        setCurrentFile: (file) =>
+          set((state) => ({ ...state, currentFile: file })),
+        addFileToStore: (file) =>
+          set((state) => ({ files: [...state.files, file] })),
+        removeFileFromStore: (fileId) => {
+          set((state) => {
+            const newFiles = state.files.filter((f) => f.fileId !== fileId);
+            let newCurrentFile = state.currentFile;
+
+            if (state.currentFile?.fileId === fileId) {
+              newCurrentFile = newFiles.length > 0 ? newFiles[0] : null;
+            }
+
+            return {
+              files: newFiles,
+              currentFile: newCurrentFile,
+            };
+          });
+        },
+      }),
+      { name: "files_store" }
+    )
+  )
+);
 
 const UseFiles = () => {
-  const { addFileToStore, files, setCurrentFile, currentFile } =
-    useFilesStore();
+  const {
+    addFileToStore,
+    files,
+    setCurrentFile,
+    currentFile,
+    removeFileFromStore,
+  } = useFilesStore();
+
   const { mutateAsync: uploadFileMutation, status } = useMutation({
     mutationKey: "upload_file",
     mutationFn: async (file: File) => {
@@ -69,20 +97,58 @@ const UseFiles = () => {
     onSuccess: async (ResponseFile) => {
       setCurrentFile(ResponseFile);
       addFileToStore(ResponseFile);
-      alert("successfully uploaded the file");
+      toast.success("Successfully uploaded the File");
     },
     onError: (error) => {
       if (error instanceof Error) {
         console.log(error.message);
-        alert(error.message);
+        toast.error(error.message);
       } else {
-        alert("Something Went Wrong While uploading");
+        toast.error("Something Went Wrong While uploading");
       }
+    },
+  });
+
+  const { mutateAsync: deleteFileMutation } = useMutation({
+    mutationKey: "deleteFile",
+    mutationFn: async (fileId: string) => {
+      const path = `${
+        import.meta.env.VITE_SERVER_BASE_PATH
+      }/file/delete/${fileId}`;
+      toast.loading("Deleting The File");
+      const res = await fetch(path, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        throw new Error("Failed to delete file");
+      }
+      const data = await res.json();
+      if (!data.success) {
+        throw new Error("Failed to delete file");
+      }
+      toast.dismiss();
+
+      return fileId;
+    },
+    onSuccess: (fileId) => {
+      removeFileFromStore(fileId);
+      toast.success("Successfully deleted the File");
     },
   });
 
   const handleUploadFile = async (file: File) => {
     await uploadFileMutation(file);
+  };
+
+  const handleDeleteFile = async (file: TResponseFile) => {
+    await deleteFileMutation(file.fileId);
+  };
+
+  const setCurrentFileById = async (id: string) => {
+    const file = files.find((val) => val.fileId === id);
+    if (file) {
+      setCurrentFile(file);
+    }
   };
 
   return {
@@ -91,6 +157,8 @@ const UseFiles = () => {
     files,
     setCurrentFile,
     currentFile,
+    setCurrentFileById,
+    handleDeleteFile,
   };
 };
 
